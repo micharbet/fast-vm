@@ -1,0 +1,15 @@
+.TH FAST-VM 8 "fast-vm-net-cleanup 1.6 (2019-09-01)" "fast-vm" "fast-vm-net-cleanup" \" -*- nroff -*-
+.SH NAME
+fast-vm-net-cleanup \(em script for removing staled DHCP leases from fast-vm libvirt network
+.SH SYNOPSIS
+.B fast-vm-net-cleanup
+.br
+
+.SH DESCRIPTION
+fast-vm-net-cleanup check currently removes the DHCP reservations in fast-vm libvirt network
+for the VMs that doesn't exists anymore. Note that this may not resolve all the network issues
+and in case that VMs cannot receive IP address make sure to also check the system logs for possible
+issues.
+
+.SH SEE ALSO
+.BR fast-vm (8)

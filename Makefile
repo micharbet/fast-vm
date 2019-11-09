@@ -7,6 +7,7 @@ sysconfdir=/etc
 install:
 	mkdir -p ${DESTDIR}/${bindir}
 	install -pm 755 fast-vm ${DESTDIR}/${bindir}/
+	install -pm 755 fast-vm-image ${DESTDIR}/${bindir}/
 	install -pm 755 fast-vm-net-cleanup ${DESTDIR}/${bindir}/
 	mkdir -p ${DESTDIR}/${sbindir}
 	install -pm 755 configure-fast-vm ${DESTDIR}/${sbindir}/
@@ -19,9 +20,12 @@ install:
 	install -pm 440 fast-vm-sudoers ${DESTDIR}/${sysconfdir}/sudoers.d/
 	mkdir -p ${DESTDIR}/${datadir}/bash-completion/completions
 	install -pm 644 fast-vm.bash_completion ${DESTDIR}/${datadir}/bash-completion/completions/fast-vm
+	install -pm 644 fast-vm-image.bash_completion ${DESTDIR}/${datadir}/bash-completion/completions/fast-vm-image
 	mkdir -p ${DESTDIR}/${datadir}/man/man8
 	install -pm 644 man/fast-vm.8 ${DESTDIR}/${datadir}/man/man8/
+	install -pm 644 man/fast-vm-image.8 ${DESTDIR}/${datadir}/man/man8/
 	install -pm 644 man/fast-vm-list.8 ${DESTDIR}/${datadir}/man/man8/
 	install -pm 644 man/configure-fast-vm.8 ${DESTDIR}/${datadir}/man/man8/
+	install -pm 644 man/fast-vm-net-cleanup.8 ${DESTDIR}/${datadir}/man/man8/
 	mkdir -p ${DESTDIR}/${datadir}/man/man5
 	install -pm 644 man/fast-vm.conf.5 ${DESTDIR}/${datadir}/man/man5/

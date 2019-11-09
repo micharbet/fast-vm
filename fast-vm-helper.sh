@@ -24,7 +24,7 @@ pmsg () {
 	priority="$1"
 	message="$2"
 	if [ "$LOG_LEVEL" -ge "$priority" ]; then
-		printf "$USER | $message"|logger -p $priority --id -t fast-vm-helper
+		printf "$USER | $message"|logger -p "$priority" --id -t fast-vm-helper
 	fi
 	if [ "$DISPLAY_LEVEL" -ge "$priority" ]; then
 		case "$priority" in
@@ -46,7 +46,7 @@ pmsg () {
 		esac
 	fi
 }
-if [ ! $(whoami) = 'root' ];
+if [ ! "$(whoami)" = 'root' ];
 then
         pmsg $P_ERROR "this must be run as root\n"
         exit 1
@@ -78,12 +78,12 @@ read action arg1 arg2 arg3
 
 case "$action" in
 	lvcreate)
-		arg2=$(echo "$arg2"|egrep '^[a-zA-Z0-9.-]+$')
+		arg2=$(echo "$arg2"|grep -E '^[a-zA-Z0-9.-]+$')
 		if [ -z "$arg2" ]; then
 			pmsg $P_ERROR "LV name validation failed\n"
 			exit 1
 		fi
-		arg3=$(echo "$arg3"|egrep '^[a-zA-Z0-9.-]+$')
+		arg3=$(echo "$arg3"|grep -E '^[a-zA-Z0-9.-]+$')
 		if [ "$arg1" = "newvm" ]; then
 			if  [ -z "$arg3" ] || [ ! -b "/dev/$THINPOOL_VG/$VM_PREFIX$arg2" ]; then
 				echo "[err] newvm LV name validation failed"
@@ -93,15 +93,15 @@ case "$action" in
 
 		case "$arg1" in
 			base)
-				arg3=$(echo "$arg3"|egrep '^[0-9]+$')
+				arg3=$(echo "$arg3"|grep -E '^[0-9]+$')
 				if  [ -z "$arg3" ]; then
 					pmsg $P_ERROR "LV size validation failed\n"
 					exit 1
 				fi
-				lvcreate -n $VM_PREFIX$arg2 -V ${arg3}G --thinpool $THINPOOL_VG/$THINPOOL_LV 2>&1|$DEBUG_LOG_CMD
+				lvcreate -n "$VM_PREFIX$arg2" -V "${arg3}G" --thinpool "$THINPOOL_VG/$THINPOOL_LV" 2>&1|$DEBUG_LOG_CMD
 			;;
 			newvm)
-				lvcreate -k n -s --thinpool $THINPOOL_VG/$THINPOOL_LV /dev/$THINPOOL_VG/$VM_PREFIX$arg2 --name $VM_PREFIX$arg3 2>&1|$DEBUG_LOG_CMD
+				lvcreate -k n -s --thinpool "$THINPOOL_VG/$THINPOOL_LV" "/dev/$THINPOOL_VG/$VM_PREFIX$arg2" --name "$VM_PREFIX$arg3" 2>&1|$DEBUG_LOG_CMD
 			;;
 			*)
 				pmsg $P_ERROR "wrong action for lvcreate\n"
@@ -109,7 +109,7 @@ case "$action" in
 		esac
 		;;
 	lvremove)
-		arg1=$(echo "$arg1" | egrep "/dev/$THINPOOL_VG/$VM_PREFIX[a-zA-Z0-9.-]+$")
+		arg1=$(echo "$arg1" | grep -E "/dev/$THINPOOL_VG/$VM_PREFIX[a-zA-Z0-9.-]+$")
 		if [ -z "$arg1" ] || [ ! -b "$arg1" ]; then
 			pmsg $P_ERROR "LV not found, not a block device or not allowed to be removed\n"
 			exit 1
@@ -118,36 +118,36 @@ case "$action" in
 		lvremove -f "$arg1" 2>&1|$DEBUG_LOG_CMD
 		;;
 	lvresize)
-		arg1=$(echo "$arg1" | egrep "/dev/$THINPOOL_VG/$VM_PREFIX[a-zA-Z0-9.-]+$")
+		arg1=$(echo "$arg1" | grep -E "/dev/$THINPOOL_VG/$VM_PREFIX[a-zA-Z0-9.-]+$")
 		if [ -z "$arg1" ] || [ ! -b "$arg1" ]; then
 			pmsg $P_ERROR "LV not found, not a block device or not allowed to be resized\n"
 			exit 1
 		fi
-		arg2=$(echo "$arg2"|egrep '^[0-9]+$')
+		arg2=$(echo "$arg2"|grep -E '^[0-9]+$')
 		if  [ -z "$arg2" ]; then
 			pmsg $P_ERROR "LV size validation failed\n"
 			exit 1
 		fi
 
-		lvresize -f -L ${arg2}G "$arg1" 2>&1|$DEBUG_LOG_CMD
+		lvresize -f -L "${arg2}G" "$arg1" 2>&1|$DEBUG_LOG_CMD
 		;;
 	lvs)
-		lvs $THINPOOL_VG -o lv_name,lv_size,data_percent,role --separator ' ' |egrep "($THINPOOL_LV|$VM_PREFIX)"
+		lvs "$THINPOOL_VG" -o lv_name,lv_size,data_percent,role --separator ' ' |grep -E "($THINPOOL_LV|$VM_PREFIX)"
 		;;
 	chgrp)
-		arg1=$(echo "$arg1" | egrep "/dev/$THINPOOL_VG/$VM_PREFIX[a-zA-Z0-9.-]+$")
+		arg1=$(echo "$arg1" | grep -E "/dev/$THINPOOL_VG/$VM_PREFIX[a-zA-Z0-9.-]+$")
 		if [ -z "$arg1" ] || [ ! -b "$arg1" ]; then
 			pmsg $P_ERROR "LV not found, not a block device or not allowed to be chgrp\n"
 			exit 1
 		fi
 
-		chgrp $FASTVM_GROUP "$arg1" 2>&1|$DEBUG_LOG_CMD
+		chgrp "$FASTVM_GROUP" "$arg1" 2>&1|$DEBUG_LOG_CMD
 		;;
 	dhcp_release)
-		PATH="$PATH:/usr/sbin" which dhcp_release >/dev/null 2>&1
+		PATH="$PATH:/usr/sbin" command -v dhcp_release >/dev/null 2>&1
 		if [ "$?" -eq '0' ]; then
-			arg2=$(echo "$arg2"| egrep '^[0-9]+$')
-			arg3=$(echo "$arg3"| egrep '^[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}$')
+			arg2=$(echo "$arg2"| grep -E '^[0-9]+$')
+			arg3=$(echo "$arg3"| grep -E '^[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}:[a-f0-9]{2,2}$')
 			if [ -z "$arg2" ] || [ -z "$arg3" ] || [ "$arg2" -lt 20 ] || [ "$arg2" -gt 220 ]; then
 				pmsg $P_ERROR "validation of VM number or mac address failed\n"
 				exit 1
