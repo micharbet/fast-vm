@@ -13,11 +13,11 @@ _fast-vm()
 	fi
 
 	if [ "$cword" -eq 3 ] && [ ${COMP_WORDS[1]} == "import_image" ]; then
-		_filedir '@(gz|xz)'
+		_filedir '@(gz|xz|zst)'
 		return 0
 	fi
 	if [ "$cword" -eq 4 ] && [ ${COMP_WORDS[1]} == "import_custom_image" ]; then
-		_filedir '@(gz|xz)'
+		_filedir '@(gz|xz|zst)'
 		return 0
 	fi
 	if [ "$cword" -eq 4 ] && [ ${COMP_WORDS[1]} == "import_image" ]; then
@@ -53,7 +53,7 @@ _fast-vm()
 	fi
 
 	if [ "$cword" -eq 3 ] && [ ${COMP_WORDS[1]} == "export_image" ]; then
-	        COMPREPLY=( $( compgen -W "xz gz" -- "$cur" ) )
+	        COMPREPLY=( $( compgen -W "zst xz gz" -- "$cur" ) )
 		return 0
 	fi
 
@@ -74,7 +74,7 @@ _fast-vm()
 		local number_used number_all number_available
 		number_used=$(mktemp)
 		number_all=$(mktemp)
-		virsh --connect qemu:///system list --all|awk '{print $2}'|egrep "^${vm_prefix}.*-[0-9]+"|sed 's/.*-\([0-9]\+\)$/\1/'> $number_used
+		virsh --connect qemu:///system list --all|awk '{print $2}'|grep -E "^${vm_prefix}.*-[0-9]+"|sed 's/.*-\([0-9]\+\)$/\1/'> $number_used
 		seq 20 220 > $number_all
 		number_available=$(comm -2 -3 <(sort $number_all) <(sort $number_used))
 		COMPREPLY=( $( compgen -W "base $number_available" -- "$cur" ) )
@@ -93,19 +93,9 @@ _fast-vm()
 		_filedir '@(sh)'
 		return 0
 	fi
-	if [ "$cword" -eq 3 ] && [ ${COMP_WORDS[1]} == "scp" ]; then
+	if [ "$cword" -gt 2 ] && [ ${COMP_WORDS[1]} == "scp" ]; then
 		# offer any file or keyword 'vm:'
 		COMPREPLY=( $( compgen -W "vm:" -f -- "$cur" ) )
-		return 0
-	fi
-	if [ "$cword" -eq 4 ] && [ ${COMP_WORDS[1]} == "scp" ]; then
-		# source path did /not/ contain "vm:", so prompt only that
-		COMPREPLY=( $( compgen -W "vm:" ) )
-		return 0
-	fi
-	if [ "$cword" -eq 5 ] && [ ${COMP_WORDS[1]} == "scp" ]; then
-		# source path /did/ contain "vm:", so exclude it from destination
-		COMPREPLY=( $( compgen -f -- "$cur" ) )
 		return 0
 	fi
 
@@ -113,7 +103,7 @@ _fast-vm()
 		import_image|import_custom_image|import_profile)
 			return 0
 			;;
-		create|remove_image|export_image|resize_image)
+		create|remove_image|export_image|resize_image|compact_image)
 			local image_name
 			local profile_name
 
@@ -137,10 +127,10 @@ _fast-vm()
 			COMPREPLY=( $( compgen -W "all active inactive" -- "$cur" ) )
 			return 0
 			;;
-		start|stop|delete|console|keydist|scp|ssh|info|resize|edit_note)
+		start|stop|delete|console|keydist|scp|ssh|info|resize|edit_note|compact)
 			local vm_numbers
 			case $prev in
-				start|resize)
+				start|resize|compact)
 					vm_numbers=$(fast-vm list inactive short)
 				;;
 				delete|edit_note|info)
@@ -157,7 +147,7 @@ _fast-vm()
 
 	$split && return 0
 	if [ "$cword" -lt 2 ]; then
-		COMPREPLY=( $( compgen -W 'import_image import_custom_image export_image remove_image resize_image import_profile remove_profile edit_note keydist list_images list_profiles create start stop delete resize console scp ssh list info' -- "$cur" ) )
+		COMPREPLY=( $( compgen -W 'import_image import_custom_image export_image remove_image resize_image import_profile remove_profile edit_note keydist list_images list_profiles create start stop delete resize console scp ssh list info compact compact_image' -- "$cur" ) )
 		return 0
 	fi
 

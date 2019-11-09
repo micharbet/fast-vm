@@ -1,7 +1,7 @@
 Name:		fast-vm
-Version:	1.4
+Version:	1.6
 Release:	1%{?dist}
-Summary:	Script for defining VMs from images provided in thin LVM pool
+Summary:	Script for defining VMs from images provided in thin LVM pool - with extra dependencies
 
 License:	GPLv3+
 URL:		https://github.com/OndrejHome/%{name}/
@@ -11,6 +11,32 @@ BuildArch:	noarch
 BuildRequires:	coreutils
 BuildRequires:	bash-completion
 BuildRequires:	make
+Requires:	%{name}-minimal
+Recommends:	bash-completion
+Recommends:	curl
+Recommends:	dnsmasq-utils
+Recommends:	gzip
+Recommends:	pv
+Recommends:	xz
+Recommends:	zstd
+Recommends:	libguestfs-tools-c
+
+%description
+%{name} provides command-line interface to create virtual machines (VMs) in
+libvirt, based on imported disks in LVM and XML templates.
+
+Templates of VM disk drives are stored in LVM thinpool LV for space efficiency.
+Templates for VMs are just libvirt XMLs with few macros from %{name}. When
+creating a VM, %{name} will create new writable LVM snapshot of disk drive,
+define libvirt VM for it and make a static DHCP reservation for libvirt network
+on which VM will be. Optionally %{name} allows to do some customization of disk
+drive of new machine before starting VM using the 'hack files'.
+
+For package with minimal dependencies check '%{name}-minimal'.
+
+%package minimal
+Summary:        Script for defining VMs from images provided in thin LVM pool
+
 Requires:	coreutils
 Requires:	gawk
 Requires:	libvirt-client
@@ -26,14 +52,9 @@ Requires:	qemu-kvm
 Requires:	libvirt-daemon-driver-storage
 Requires:	libvirt-daemon-driver-lxc
 Requires:	libvirt-daemon-driver-qemu
-Recommends:	bash-completion
-Recommends:	curl
-Recommends:	dnsmasq-utils
-Recommends:	gzip
-Recommends:	pv
-Recommends:	xz
+Conflicts:	%{name} < 1.6
 
-%description
+%description minimal
 %{name} provides command-line interface to create virtual machines (VMs) in
 libvirt, based on imported disks in LVM and XML templates.
 
@@ -51,7 +72,10 @@ drive of new machine before starting VM using the 'hack files'.
 %make_install
 
 %files
-%doc README
+%{nil}
+
+%files minimal
+%doc README.md
 %license LICENSE
 %{_bindir}/%{name}
 %{_bindir}/%{name}-net-cleanup
@@ -65,6 +89,19 @@ drive of new machine before starting VM using the 'hack files'.
 %config(noreplace) %{_sysconfdir}/sudoers.d/%{name}-sudoers
 
 %changelog
+* Wed Oct 09 2019 Ondrej Famera <ondrej-xa2iel8u@famera.cz> 1.6-1
+- CentOS/RHEL 8 support
+- zst compression support (if installed)
+- 'compact' and 'compact_image' commands added
+- various fixes and documentation improvements
+
+* Thu Jul 19 2018 Ondrej Famera <ofamera@redhat.com> 1.5-1
+- recursive scp command
+- scp with multiple files (@itsbill)
+- improved reliability of new metadata storage
+- various documentation fixes
+- splitted fast-vm into 2 RPM packages for CentOS/RHEL/Fedora
+
 * Tue May 08 2018 Ondrej Famera <ofamera@redhat.com> 1.4-1
 - added 'scp' and 'keydist' actions (itsbill)
 - move VM metadata into libvirt VMs (deprecated FASTVM_NOTES_DIR)
